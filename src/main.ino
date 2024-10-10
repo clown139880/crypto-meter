@@ -265,7 +265,7 @@ void getCryptoPrices()
 {
   Serial.println("Fetching crypto prices...");
   HTTPClient http;
-  String url = "http://192.168.5.12:3000/api/crypto?symbols=";
+  String url = String(API_HOST) + "/api/crypto?symbols=";
   for (int i = 0; i < numCoins; i++)
   {
     url += coins[i];
