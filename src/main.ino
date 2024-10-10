@@ -8,6 +8,7 @@
 #include <ArduinoJson.h>
 #include <EEPROM.h>
 #include <time.h>
+#include "wifi_config.h"
 
 LV_IMG_DECLARE(logo);
 extern const uint16_t logo_map[];
@@ -101,32 +102,6 @@ void my_touchpad_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data)
   else
   {
     data->state = LV_INDEV_STATE_REL;
-  }
-}
-
-void initWiFi()
-{
-  Serial.println("Initializing WiFi...");
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  Serial.print("Connecting to WiFi ..");
-  int attempts = 0;
-  while (WiFi.status() != WL_CONNECTED && attempts < 20)
-  {
-    Serial.print('.');
-    delay(1000);
-    attempts++;
-  }
-  if (WiFi.status() == WL_CONNECTED)
-  {
-    Serial.println("\nWiFi connected. IP address: " + WiFi.localIP().toString());
-    configTime(60 * 60 * 8, 0, "pool.ntp.org"); // Configure NTP
-    updateCryptoPrice(NULL);                    // Trigger an immediate update when connected
-    Serial.println("NTP configured");
-  }
-  else
-  {
-    Serial.println("\nFailed to connect to WiFi");
   }
 }
 
@@ -448,4 +423,41 @@ void loop()
   }
 
   delay(5);
+}
+
+void initWiFi()
+{
+  Serial.println("Initializing WiFi...");
+  WiFi.mode(WIFI_STA);
+  if (WiFiConfig::connect(WIFI_SSID, WIFI_PASSWORD, 20000))
+  {
+    Serial.println("WiFi connected. IP address: " + WiFi.localIP().toString());
+    configTime(60 * 60 * 8, 0, "pool.ntp.org"); // Configure NTP
+    updateCryptoPrice(NULL);                    // Trigger an immediate update when connected
+    Serial.println("NTP configured");
+  }
+  else
+  {
+    Serial.println("Failed to connect to WiFi. Entering configuration mode...");
+    enterConfigMode();
+  }
+}
+
+void enterConfigMode()
+{
+  Serial.println("Entering WiFi configuration mode");
+  WiFiConfig::startConfigPortal();
+  // After exiting the config portal, try to connect again
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    Serial.println("WiFi connected after configuration. IP address: " + WiFi.localIP().toString());
+    configTime(60 * 60 * 8, 0, "pool.ntp.org"); // Configure NTP
+    updateCryptoPrice(NULL);                    // Trigger an immediate update when connected
+    Serial.println("NTP configured");
+  }
+  else
+  {
+    Serial.println("Failed to connect to WiFi after configuration. Restarting...");
+    ESP.restart();
+  }
 }
