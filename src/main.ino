@@ -429,16 +429,29 @@ void initWiFi()
 {
   Serial.println("Initializing WiFi...");
   WiFi.mode(WIFI_STA);
-  if (WiFiConfig::connect(WIFI_SSID, WIFI_PASSWORD, 20000))
+
+  String WIFI_SSID = "";
+  String WIFI_PASSWORD = "";
+
+  if (WiFiConfig::loadWiFiCredentials(WIFI_SSID, WIFI_PASSWORD))
   {
-    Serial.println("WiFi connected. IP address: " + WiFi.localIP().toString());
-    configTime(60 * 60 * 8, 0, "pool.ntp.org"); // Configure NTP
-    updateCryptoPrice(NULL);                    // Trigger an immediate update when connected
-    Serial.println("NTP configured");
+    Serial.println("Connecting to WiFi...");
+    if (WiFiConfig::connect(WIFI_SSID.c_str(), WIFI_PASSWORD.c_str()))
+    {
+      Serial.println("WiFi connected. IP address: " + WiFi.localIP().toString());
+      configTime(60 * 60 * 8, 0, "pool.ntp.org"); // Configure NTP
+      updateCryptoPrice(NULL);                    // Trigger an immediate update when connected
+      Serial.println("NTP configured");
+    }
+    else
+    {
+      Serial.println("Failed to connect to WiFi. Entering configuration mode...");
+      enterConfigMode();
+    }
   }
   else
   {
-    Serial.println("Failed to connect to WiFi. Entering configuration mode...");
+    Serial.println("Entering configuration mode...");
     enterConfigMode();
   }
 }

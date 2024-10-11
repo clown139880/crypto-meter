@@ -9,9 +9,11 @@
 class WiFiConfig
 {
 public:
-    static bool connect(const char *ssid, const char *password, int timeout = 30000)
+    static bool connect(const char *ssid, const char *password, int timeout = 3000)
     {
-        WiFi.mode(WIFI_STA); // Explicitly set the WiFi mode to station
+        Serial.println("Initializing EEPROM..." + String(ssid) + " " + String(password));
+
+        WiFi.mode(WIFI_AP_STA); // Explicitly set the WiFi mode to station
         WiFi.begin(ssid, password);
         unsigned long startTime = millis();
         while (WiFi.status() != WL_CONNECTED && millis() - startTime < timeout)
@@ -48,6 +50,9 @@ public:
                 server.stop();
                 dnsServer.stop();
                 WiFi.softAPdisconnect(true);
+            }
+            else {
+                server.send(400, "text/plain", "Failed to connect with new credentials");
             } });
 
         server.begin();
