@@ -6,7 +6,7 @@
 #include <EEPROM.h>
 #include <time.h>
 #include "wifi_config.h"
-// #include "bluetooth_hid.h"
+#include <BleKeyboard.h>
 #include "ui_manager.h"
 
 LV_IMG_DECLARE(logo);
@@ -22,7 +22,7 @@ extern const uint16_t logo_map[];
 static const uint16_t screenWidth = 240;
 static const uint16_t screenHeight = 240;
 TFT_eSPI tft = TFT_eSPI(screenWidth, screenHeight);
-
+BleKeyboard bleKeyboard("CryptoMeter", "UCTW", 88);
 CST816S touch;
 
 const char *coins[] = {"BTC", "ETH", "GMT"};
@@ -60,7 +60,7 @@ void setup()
   uiManager.init(tft, touch);
   uiManager.createUI();
 
-  // bluetoothHID.setup();
+  bleKeyboard.begin();
 
   Serial.println("Initializing EEPROM...");
   EEPROM.begin(sizeof(CachedData) * numCoins);
@@ -76,16 +76,35 @@ void loop()
   uiManager.loop();
   uiManager.handleButtons();
 
-  // if (bluetoothHID.isConnected())
-  // {
-  //   // Device is connected, show media UI
-  //   uiManager.setTile(numCoins);
-  // }
-  // else
-  // {
-  //   // Device is not connected, show pairing UI
-  //   uiManager.setTile(numCoins + 2);
-  // }
+  if (bleKeyboard.isConnected())
+  {
+    // Serial.println("Sending 'Hello world'...");
+    // bleKeyboard.print("Hello world");
+
+    // delay(1000);
+
+    // Serial.println("Sending Enter key...");
+    // bleKeyboard.write(KEY_RETURN);
+
+    // delay(1000);
+
+    // Serial.println("Sending Play/Pause media key...");
+    // bleKeyboard.write(KEY_MEDIA_PLAY_PAUSE);
+
+    // delay(1000);
+
+    //
+    // Below is an example of pressing multiple keyboard modifiers
+    // which by default is commented out.
+    //
+    /* Serial.println("Sending Ctrl+Alt+Delete...");
+     bleKeyboard.press(KEY_LEFT_CTRL);
+     bleKeyboard.press(KEY_LEFT_ALT);
+     bleKeyboard.press(KEY_DELETE);
+     delay(100);
+     bleKeyboard.releaseAll();
+     */
+  }
 
   if (lastInteractionTime > 0 && (millis() - lastInteractionTime) > sleepDelay)
   {

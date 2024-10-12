@@ -4,9 +4,11 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include <WiFi.h>
+#include <BleKeyboard.h>
 
 UIManager uiManager;
 
+extern BleKeyboard bleKeyboard;
 extern const char *coins[];
 extern CachedData cachedPrices[];
 
@@ -362,25 +364,21 @@ void UIManager::my_touchpad_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *
 void UIManager::onPlayPauseClicked(lv_event_t *e)
 {
     // bluetoothHID.sendMediaKeyPress(1 << 3); // Play/Pause
-    if (playbackStatus == "Playing")
-    {
-        playbackStatus = "Paused";
-    }
-    else
-    {
-        playbackStatus = "Playing";
-    }
+    bleKeyboard.write(KEY_MEDIA_PLAY_PAUSE);
+
     uiManager.updateMediaInfo(nullptr);
 }
 
 void UIManager::onNextClicked(lv_event_t *e)
 {
+    bleKeyboard.write(KEY_MEDIA_NEXT_TRACK);
     // bluetoothHID.sendMediaKeyPress(1 << 0); // Next Track
     uiManager.updateMediaInfo(nullptr);
 }
 
 void UIManager::onPrevClicked(lv_event_t *e)
 {
+    bleKeyboard.write(KEY_MEDIA_PREVIOUS_TRACK);
     // bluetoothHID.sendMediaKeyPress(1 << 1); // Previous Track
     uiManager.updateMediaInfo(nullptr);
 }
